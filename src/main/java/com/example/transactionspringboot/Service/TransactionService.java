@@ -19,8 +19,8 @@ public class TransactionService {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    public List<Transaction> getAllTransactions(int amount, String description, Date transactionDate) {
-        String sql = "SELECT * FROM transactions WHERE amount = ? AND description = ? AND transaction_date = ?";
-        return jdbcTemplate.query(sql, new Object[]{amount, description, transactionDate}, new BeanPropertyRowMapper<>(Transaction.class));
+    public List<Transaction> getAllTransactions() {
+        String sql = "SELECT * FROM transactions";
+        return jdbcTemplate.query(sql, new Object[]{}, new BeanPropertyRowMapper<>(Transaction.class));
     }
 }

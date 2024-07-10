@@ -22,12 +22,12 @@ public class TranController {
         this.transactionService = transactionService;
     }
 
-    @PostMapping("/api/transaction")
+    @GetMapping("/api/transaction")
     @ResponseBody
-    public String Table(@RequestBody Transaction tran) {
+    public String Table() {
         Map<String, Object> rs = new HashMap<>();
 
-        List<Transaction> transactions = transactionService.getAllTransactions(tran.getAmount(), tran.getDescription(), tran.getTransactionDate());
+        List<Transaction> transactions = transactionService.getAllTransactions();
 
         rs.put("success", transactions);
         rs.put("redirectURL", "/success");
