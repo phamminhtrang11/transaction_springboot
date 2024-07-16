@@ -24,12 +24,17 @@ public class TransactionService {
         this.namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(jdbcTemplate);
     }
 
-    public List<Transaction> getAllTransactions() {
-        String sql = "SELECT * FROM transactions";
-        return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(Transaction.class));
+    public List<Transaction> getAllTransactions(int page, int size) {
+        int offset = page * size;
+        String sql = "SELECT * FROM transactions LIMIT :limit OFFSET :offset";
+        MapSqlParameterSource parameters = new MapSqlParameterSource();
+        parameters.addValue("limit", size);
+        parameters.addValue("offset", offset);
+
+        return namedParameterJdbcTemplate.query(sql, parameters, new BeanPropertyRowMapper<>(Transaction.class));
     }
 
-    public List<Transaction> search(searchReq req) {
+    public List<Transaction> search(searchReq req, int page, int size) {
         String sql = "SELECT * FROM transactions";
         StringJoiner where = new StringJoiner(" AND ", " WHERE ", "").setEmptyValue("");
         MapSqlParameterSource parameters = new MapSqlParameterSource();
@@ -42,7 +47,7 @@ public class TransactionService {
             where.add("amount <= :maxAmount");
             parameters.addValue("maxAmount", Long.valueOf(req.getMaxAmount()));
         }
-        if (req.getMinDate() != null &&  req.getMaxDate() != null) {
+        if (req.getMinDate() != null && req.getMaxDate() != null) {
             where.add("transaction_date BETWEEN :minDate AND :maxDate");
             parameters.addValue("minDate", req.getMinDate());
             parameters.addValue("maxDate", req.getMaxDate());
@@ -53,6 +58,10 @@ public class TransactionService {
         }
 
         sql += where.toString();
+        sql += " LIMIT :limit OFFSET :offset";
+        parameters.addValue("limit", size);
+        parameters.addValue("offset", page * size);
+
         return namedParameterJdbcTemplate.query(sql, parameters, new BeanPropertyRowMapper<>(Transaction.class));
     }
 }

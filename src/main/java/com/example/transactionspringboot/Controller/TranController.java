@@ -6,9 +6,10 @@ import com.example.transactionspringboot.TranEntity.searchReq;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,10 +28,10 @@ public class TranController {
 
     @GetMapping
     @ResponseBody
-    public String getAllTransaction() {
+    public String getAllTransaction(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
         Map<String, Object> rs = new HashMap<>();
 
-        List<Transaction> transactions = transactionService.getAllTransactions();
+        List<Transaction> transactions = transactionService.getAllTransactions(page, size);
 
         rs.put("success", transactions);
         rs.put("redirectURL", "/success");
@@ -44,21 +45,19 @@ public class TranController {
     }
 
     @PostMapping("/search")
-    @ResponseBody
-    public String search(@RequestBody searchReq req) {
+    public ResponseEntity<String> search(@RequestBody searchReq req, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
+        Map<String, Object> responseMap = new HashMap<>();
+        List<Transaction> transactions = transactionService.search(req, page, size);
 
-        Map<String, Object> rs = new HashMap<>();
-
-        List<Transaction> transactions = transactionService.search(req);
-
-        rs.put("success", transactions);
-        rs.put("redirectURL", "/search");
+        responseMap.put("success", transactions);
+        responseMap.put("redirectURL", "/search");
 
         try {
-            String jsonResponse = mapper.writeValueAsString(rs);
-            return jsonResponse;
+            String jsonResponse = mapper.writeValueAsString(responseMap);
+            return ResponseEntity.ok(jsonResponse);
         } catch (JsonProcessingException e) {
-            return "{\"error\":\"Failed to serialize response\"}";
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("{\"error\":\"Failed to serialize response\"}");
         }
     }
 }
