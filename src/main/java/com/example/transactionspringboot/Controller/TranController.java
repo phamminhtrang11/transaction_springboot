@@ -43,6 +43,58 @@ public class TranController {
             return "{\"error\":\"Failed to serialize response\"}";
         }
     }
+    @PostMapping
+    public ResponseEntity<String> addTransaction(@RequestBody Transaction transaction) {
+        try {
+            int addedTransaction = transactionService.addTransaction(transaction);
+            Map<String, Object> responseMap = new HashMap<>();
+            responseMap.put("success", addedTransaction);
+            responseMap.put("redirectURL", "/success");
+            String jsonResponse = mapper.writeValueAsString(responseMap);
+            return ResponseEntity.ok(jsonResponse);
+        } catch (JsonProcessingException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("{\"error\":\"Failed to serialize response\"}");
+        }
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<String> updateTransaction(@PathVariable("id") Long id, @RequestBody Transaction transaction) {
+        try {
+            int updatedTransaction = transactionService.updateTransaction(id, transaction);
+            Map<String, Object> responseMap = new HashMap<>();
+            responseMap.put("success", updatedTransaction);
+            responseMap.put("redirectURL", "/success");
+            String jsonResponse = mapper.writeValueAsString(responseMap);
+            return ResponseEntity.ok(jsonResponse);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("{\"error\":\"" + e.getMessage() + "\"}");
+        } catch (JsonProcessingException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("{\"error\":\"Failed to serialize response\"}");
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteTransaction(@PathVariable("id") Long id) {
+        try {
+            transactionService.deleteTransaction(id);
+            Map<String, Object> responseMap = new HashMap<>();
+            responseMap.put("success", "Transaction deleted successfully");
+            responseMap.put("redirectURL", "/success");
+
+            String jsonResponse = mapper.writeValueAsString(responseMap);
+            return ResponseEntity.ok(jsonResponse);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("{\"error\":\"" + e.getMessage() + "\"}");
+        } catch (JsonProcessingException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("{\"error\":\"Failed to serialize response\"}");
+        }
+    }
+
 
     @PostMapping("/search")
     public ResponseEntity<String> search(@RequestBody searchReq req, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
@@ -60,4 +112,5 @@ public class TranController {
                     .body("{\"error\":\"Failed to serialize response\"}");
         }
     }
+
 }

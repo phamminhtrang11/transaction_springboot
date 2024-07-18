@@ -3,13 +3,19 @@ package com.example.transactionspringboot.Service;
 import com.example.transactionspringboot.TranEntity.Transaction;
 import com.example.transactionspringboot.TranEntity.searchReq;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.StringJoiner;
 
 @Service
@@ -32,6 +38,52 @@ public class TransactionService {
         parameters.addValue("offset", offset);
 
         return namedParameterJdbcTemplate.query(sql, parameters, new BeanPropertyRowMapper<>(Transaction.class));
+    }
+
+    public int addTransaction(Transaction transaction) {
+        String sql = "INSERT INTO transactions (amount, description, transaction_date) VALUES (:amount, :description, :transactionDate)";
+        Map parameters = new HashMap();
+        parameters.put("amount", transaction.getAmount());
+        parameters.put("description", transaction.getDescription());
+        parameters.put("transactionDate", transaction.getTransactionDate());
+
+        try {
+            int insertedTransaction = namedParameterJdbcTemplate.update(sql, parameters);
+            return insertedTransaction;
+        } catch (EmptyResultDataAccessException e) {
+            System.err.println("Transaction not found after insertion: " + e.getMessage());
+            return 0;
+        }
+    }
+
+
+    public int updateTransaction(Long id, Transaction transaction) {
+        String sql = "UPDATE transactions SET amount = :amount, description = :description, transaction_date = :transactionDate WHERE id = :id";
+        MapSqlParameterSource parameters = new MapSqlParameterSource();
+        parameters.addValue("id", id);
+        parameters.addValue("amount", transaction.getAmount());
+        parameters.addValue("description", transaction.getDescription());
+        parameters.addValue("transactionDate", transaction.getTransactionDate());
+
+        int updatedRows = namedParameterJdbcTemplate.update(sql, parameters);
+        if (updatedRows == 0) {
+            throw new RuntimeException("Transaction not found with id: " + id);
+        }
+
+        transaction.setId(id);
+        return 0;
+    }
+
+    public int deleteTransaction(Long id) {
+        String sql = "DELETE FROM transactions WHERE id = :id";
+        MapSqlParameterSource parameters = new MapSqlParameterSource();
+        parameters.addValue("id", id);
+
+        int deletedRows = namedParameterJdbcTemplate.update(sql, parameters);
+        if (deletedRows == 0) {
+            throw new RuntimeException("Transaction not found with id: " + id);
+        }
+        return 0;
     }
 
     public List<Transaction> search(searchReq req, int page, int size) {
