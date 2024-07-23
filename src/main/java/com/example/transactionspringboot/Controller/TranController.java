@@ -32,8 +32,11 @@ public class TranController {
         Map<String, Object> rs = new HashMap<>();
 
         List<Transaction> transactions = transactionService.getAllTransactions(page, size);
+        int totalItems = transactionService.getTotalTransactionCount();
 
         rs.put("success", transactions);
+        rs.put("totalItems", totalItems);
+        rs.put("totalPages", (int) Math.ceil((double) totalItems / size));
         rs.put("redirectURL", "/success");
 
         try {
@@ -43,6 +46,7 @@ public class TranController {
             return "{\"error\":\"Failed to serialize response\"}";
         }
     }
+
     @PostMapping
     public ResponseEntity<String> addTransaction(@RequestBody Transaction transaction) {
         try {

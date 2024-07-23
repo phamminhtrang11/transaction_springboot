@@ -2,9 +2,12 @@ package com.example.transactionspringboot.Service;
 
 import com.example.transactionspringboot.TranEntity.Transaction;
 import com.example.transactionspringboot.TranEntity.searchReq;
+import com.example.transactionspringboot.repository.TransactionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -25,6 +28,7 @@ public class TransactionService {
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     @Autowired
+    private TransactionRepository transactionRepository;
     public TransactionService(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
         this.namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(jdbcTemplate);
@@ -116,4 +120,10 @@ public class TransactionService {
 
         return namedParameterJdbcTemplate.query(sql, parameters, new BeanPropertyRowMapper<>(Transaction.class));
     }
+
+    public int getTotalTransactionCount() {
+        String sql = "SELECT COUNT(*) FROM transactions";
+        return jdbcTemplate.queryForObject(sql, Integer.class);
+    }
+
 }
